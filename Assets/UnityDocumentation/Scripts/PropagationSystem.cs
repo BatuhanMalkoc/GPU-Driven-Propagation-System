@@ -13,8 +13,14 @@ public class PropagationSystem : MonoBehaviour
         CreateBuffers();
     }
 
+    [NaughtyAttributes.Button("Reset Transform")]
+    public void ResetSO()
+    {
+        data.transformBuffers.Clear();
+        data.meshInstances.Clear();
+        
+    }
 
- 
 
 
     [NaughtyAttributes.Button("Create Random")]
@@ -28,7 +34,12 @@ public class PropagationSystem : MonoBehaviour
         Vector3 scale = Vector3.one * Random.Range(0.5f, 1.5f);
         Matrix4x4 trs = Matrix4x4.TRS(pos, rot, scale);
 
-        OnPainted(data.meshInfos[0], new List<Matrix4x4> { trs });
+        for(int i = 0; i < data.meshInfos.Count; i++)
+        {
+            OnPainted(data.meshInfos[i], new List<Matrix4x4> { trs });
+            Debug.Log("Yapýldý" + i);
+        }
+       
 
 #if UNITY_EDITOR
         EditorUtility.SetDirty(data);
@@ -59,6 +70,7 @@ public class PropagationSystem : MonoBehaviour
             data.transformBuffers.Add(buf);
         }
     }
+
 
     public void OnPainted(MeshInfo paintedMesh, List<Matrix4x4> meshTransforms)
     {

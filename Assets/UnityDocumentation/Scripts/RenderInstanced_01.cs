@@ -109,19 +109,7 @@ public class RenderInstanced_01 : MonoBehaviour
 
 
 */
-[Serializable]
-public struct MeshInfo
-{
-    public Mesh mesh;
-    public Material material;
-    public int subMeshIndex;
-    public MeshInfo(Mesh mesh, Material material, int subMeshIndex)
-    {
-        this.mesh = mesh;
-        this.material = material;
-        this.subMeshIndex = subMeshIndex;
-    }
-}
+
 public struct InstanceData
 {
     public Matrix4x4 transform;
