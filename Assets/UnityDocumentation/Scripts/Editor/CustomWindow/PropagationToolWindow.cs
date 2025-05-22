@@ -1,10 +1,11 @@
 ﻿using Codice.Client.Common.GameUI;
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-
+using Random = UnityEngine.Random;
 public class PropagationToolWindow : EditorWindow
 {
     #region Variables
@@ -12,8 +13,8 @@ public class PropagationToolWindow : EditorWindow
     const string BrushSize_PrefKey = "EditorPref_BrushSizeKey";
     const string Density_PrefKey = "EditorPref_DensityKey";
     const string MeshIndex_PrefKey = "EditorPref_MeshIndexKey";
-    
 
+    public Action<StrokeData> onBrushStroke;
     public PropagationDataSO propagationDataSO;
     public float brushSize;
     public int density;
@@ -32,6 +33,8 @@ public class PropagationToolWindow : EditorWindow
     #endregion
 
     #region GUI Methods
+
+    
     void GUI_Label()
     {
         GUILayout.Label("Instancing Aracı", EditorStyles.boldLabel);
@@ -59,6 +62,12 @@ public class PropagationToolWindow : EditorWindow
         int columns = Mathf.Max(1, (int)(position.width / cellWidth));
 
 
+        if (propagationDataSO.meshInfos.Count == 0)
+        {
+            EditorGUILayout.HelpBox("Please Add Mesh To Propagate.", MessageType.Warning);
+            return;
+        }
+
         GUILayout.BeginVertical(); // Ana dikey layout
 
         // Ortalanmış görsel ve etiket
@@ -69,11 +78,10 @@ public class PropagationToolWindow : EditorWindow
         Texture2D myIcon = AssetPreview.GetAssetPreview(propagationDataSO.meshInfos[selectedMeshIndex].mesh);
         GUILayout.Label(myIcon, GUILayout.Width(150), GUILayout.Height(150));
 
-        if (propagationDataSO.meshInfos.Count > 2)
-        {
-            GUILayout.Label("Selected Mesh: " + propagationDataSO.meshInfos[selectedMeshIndex].meshName,
-                            EditorStyles.centeredGreyMiniLabel); // Ortalanmış stil
-        }
+       
+        GUILayout.Label("Selected Mesh: " + propagationDataSO.meshInfos[selectedMeshIndex].meshName,
+        EditorStyles.centeredGreyMiniLabel); // Ortalanmış stil
+        
         GUILayout.EndVertical();
 
         GUILayout.FlexibleSpace();
@@ -85,7 +93,6 @@ public class PropagationToolWindow : EditorWindow
         GUILayout.EndVertical();
 
     }
-
     void GUI_BrushAdjusments()
     {
         brushSize = EditorGUILayout.Slider("Brush Size", brushSize, 0.1f, 10f);
@@ -100,9 +107,31 @@ public class PropagationToolWindow : EditorWindow
           typeof(PropagationDataSO),
           allowSceneObjects: true
       );
+        if(propagationDataSO != null && !PropagationSystemm.GetIfInitialized())
+        {
+            PropagationSystemm.Initialize(propagationDataSO);
+        }
+    }
+
+    void GUI_RandomButton()
+    {
+        Vector3 pos = Random.insideUnitSphere * 1f;
+        Quaternion rot = Quaternion.Euler(Random.insideUnitSphere * 360f);
+        Vector3 scale = Vector3.one * Random.Range(0.5f, 1.5f);
+        Matrix4x4 trs = Matrix4x4.TRS(pos, rot, scale);
+
+        List<Matrix4x4> matrixList = new List<Matrix4x4>();
+        matrixList.Add(trs);
+        PropagationSystemm.OnBrushStroke(new StrokeData
+        {
+            meshIndex = selectedMeshIndex,
+            matrices = matrixList,
+            isEraseMode = false
+        });
     }
     void OnGUI()
     {
+
         #region Update Window Icon
         GUI_UpdateIcon();
         #endregion
@@ -121,6 +150,13 @@ public class PropagationToolWindow : EditorWindow
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space(5);
+       
+
+        if(propagationDataSO==null)
+        {
+            EditorGUILayout.HelpBox("Please Assign Scene Propagation Data.", MessageType.Warning);
+            return;
+        }
         #endregion
 
         #region Mesh List and Picker
@@ -133,6 +169,12 @@ public class PropagationToolWindow : EditorWindow
                 EditorGUILayout.EndVertical();
 
                 EditorGUILayout.Space(5);
+           
+            if (propagationDataSO.meshInfos.Count == 0)
+            {
+              
+                return;
+            }
             #endregion
 
         #region Brush Settings
@@ -163,6 +205,16 @@ public class PropagationToolWindow : EditorWindow
                 EditorPropagationHandler.SetWindow(this);
             }
         #endregion
+
+        #region Random Button
+
+           bool isButtonPressed =  GUILayout.Button("Random", GUILayout.Width(150), GUILayout.Height(30));
+
+        if(isButtonPressed)
+        {
+            GUI_RandomButton();
+        }
+        #endregion
     }
 
     #endregion
@@ -177,8 +229,25 @@ public class PropagationToolWindow : EditorWindow
         }
        brushSize = EditorPrefs.GetFloat(BrushSize_PrefKey, 1f);
         selectedMeshIndex = EditorPrefs.GetInt(MeshIndex_PrefKey, 0);
+        if(selectedMeshIndex >= propagationDataSO.meshInfos.Count)
+        {
+            selectedMeshIndex = 0;
+        }
         density = EditorPrefs.GetInt(Density_PrefKey, 1);
+        propagationDataSO.OnMeshInfosChanged += OnMeshTypeListChanged;
     }
+
+    private void OnMeshTypeListChanged()
+    {
+        if (propagationDataSO != null)
+        {
+            if(selectedMeshIndex >= propagationDataSO.meshInfos.Count)
+            {
+                selectedMeshIndex = 0;
+            }
+        }
+    }
+
     void OnDisable()
     {
         // Pencere kapanırken seçilen referansın yolunu kaydet
@@ -196,6 +265,7 @@ public class PropagationToolWindow : EditorWindow
        EditorPrefs.SetFloat(BrushSize_PrefKey, brushSize);
         EditorPrefs.SetInt(MeshIndex_PrefKey, selectedMeshIndex);
         EditorPrefs.SetInt(Density_PrefKey, density);
+        propagationDataSO.OnMeshInfosChanged -= OnMeshTypeListChanged;
     }
     #endregion
 }

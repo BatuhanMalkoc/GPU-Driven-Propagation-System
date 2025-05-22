@@ -54,8 +54,8 @@ public class PropagationSystem : MonoBehaviour
             bool exists = data.meshInstances.Exists(group => group.meshIndex == i);
             if (!exists)
             {
-                MatrixGroup group = new MatrixGroup { meshIndex = i };
-                data.meshInstances.Add(group);
+               // MatrixGroup group = new MatrixGroup { meshIndex = i };
+                //data.meshInstances.Add(group);
             }
         }
     }

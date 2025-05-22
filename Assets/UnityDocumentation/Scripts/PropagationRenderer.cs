@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using NaughtyAttributes;
+
+
 public static class PropagationRenderer
 {
     public static void RenderEditor(PropagationDataSO data)
@@ -42,19 +44,3 @@ public static class PropagationRenderer
 
 
 
-[Serializable]
-public struct MeshInfo
-{
-    [NaughtyAttributes.ShowAssetPreview(100, 100)]
-    public Mesh mesh;
-    public string meshName;
-    public Material material;
-    public int subMeshIndex;
-    public MeshInfo(Mesh mesh,string name, Material material, int subMeshIndex)
-    {
-        this.mesh = mesh;
-        this.material = material;
-        this.subMeshIndex = subMeshIndex;
-        this.meshName = name;
-    }
-}

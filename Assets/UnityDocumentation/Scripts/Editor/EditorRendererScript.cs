@@ -22,7 +22,7 @@ public static class EditorPropagationHandler
         if (_window == null || _window.propagationDataSO == null)
             return;
         PropagationRenderer.RenderEditor(_window.propagationDataSO);
-
+        Debug.Log("Ha gayret");
        Ray ray =  HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
         Transform spawnPosition = Physics.Raycast(ray, out RaycastHit hit) ? hit.transform : null;
 
