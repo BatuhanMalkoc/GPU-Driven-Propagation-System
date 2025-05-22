@@ -13,6 +13,7 @@ public class PropagationDataSO : ScriptableObject
     public List<MeshInfo> meshInfos = new List<MeshInfo>();
     [HideInInspector][SerializeField] private int _previousMeshInfosCount = 0;
     public event Action OnMeshInfosChanged;
+    public  List<MatrixGroup> frusturedMeshInstances = new List<MatrixGroup>();
 
 #if UNITY_EDITOR
     private void OnValidate()
@@ -39,6 +40,14 @@ public class MatrixGroup
     public MatrixGroup(int meshIndex)
     {
         this.meshIndex = meshIndex;
+    }
+    public MatrixGroup()
+    {
+
+    }
+    public MatrixGroup Clone()
+    {
+        return new MatrixGroup() { meshIndex = this.meshIndex , matrices = this.matrices };
     }
 }
 

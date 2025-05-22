@@ -15,6 +15,7 @@ public static class PropagationSystemm
         meshCount = data.meshInfos.Count;
         data.OnMeshInfosChanged += OnMeshTypeListChanged;
         isInitialized = true;
+        
     }
    public static bool GetIfInitialized()
     {
@@ -45,7 +46,7 @@ public static class PropagationSystemm
 
         return false;
     }
-    private static void SetupBuffers() //Her Yeni deðer eklendiðinde çalýþmasý lazým
+    public static void SetupBuffers() //Her Yeni deðer eklendiðinde çalýþmasý lazým
     {
         ReleaseBuffers();
         data.transformBuffers.Clear();
@@ -58,9 +59,10 @@ public static class PropagationSystemm
         {
             if (data.meshInstances[i].matrices.Count > 0)
             {
-                MatrixGroup group = data.meshInstances.Find(g => g.meshIndex == i);
+                MatrixGroup group = data.frusturedMeshInstances[0];
                 var buf = new ComputeBuffer(group.matrices.Count, sizeof(float) * 16);
                 data.transformBuffers.Add(buf);
+                data.transformBuffers[i].SetData(group.matrices);
             }
         }
     }
